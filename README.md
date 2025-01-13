@@ -50,4 +50,6 @@ The program will fetch the data, calculate moving averages, and display a plot o
 
 After running the script, a plot will display the stock's closing prices and its 30-day and 100-day moving averages. The title of the chart will include the company's name and ticker symbol.
 
+![Screenshot 2025-01-13 141444](https://github.com/user-attachments/assets/8b0f60d6-f3f7-4af7-ad1d-4270ad64ad35)
+
 This project is licensed under the [MIT License](LICENSE).
