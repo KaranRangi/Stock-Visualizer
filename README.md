@@ -1,12 +1,13 @@
-# Stock Price Visualizer Tool
+# Stock Price Predictor & Visualizer Tool
 
-This Python project allows users to fetch stock price data, calculate moving averages, and visualize stock trends using the `yfinance` library.
+This Python project allows users to fetch historical stock price data using the `yfinance` library, train a simple linear regression model, and visualize both historical and predicted prices. It also offers a basic prediction on whether you may consider buying or selling based on future trends.
 
 ## Features
 
-- Fetch historical stock price data for any stock ticker symbol.
-- Calculate short-term and long-term moving averages.
-- Visualize stock prices along with moving averages in an interactive chart.
+- Fetch historical stock data from Yahoo Finance (past 5 years).
+- Train a Linear Regression model to predict stock prices for the next 365 days.
+- Visualize historical and future predicted stock prices using `matplotlib`.
+- Suggest a **buy or sell** decision based on future trend direction.
 
 ## Installation
 
@@ -20,9 +21,7 @@ This Python project allows users to fetch stock price data, calculate moving ave
    ```
 3. Install the required dependencies:
    ```bash
-   pip install yfinance
-   pip install pandas
-   pip install matplotlib
+   pip install yfinance pandas numpy matplotlib scikit-learn
    ```
 
 ## Usage
@@ -31,25 +30,24 @@ This Python project allows users to fetch stock price data, calculate moving ave
    ```bash
    python main.py
    ```
-2. Enter the stock ticker symbol, start date, and end date when prompted.
+2. Enter the stock ticker symbol when prompted.
 
 Example:
 ```
-Enter stocks Ticker symbol: AAPL
-Enter start date (Year-MM-DD): 2023-01-01
-Enter end date (Year-MM-DD): 2023-12-31
+Enter stock ticker symbol: AAPL
 ```
 
-The program will fetch the data, calculate moving averages, and display a plot of the stock prices and moving averages.
+The program will:
+- Download 5 years of data for AAPL,
+- Train a regression model,
+- Predict prices for the next 365 days,
+- Display a plot of historical and predicted prices,
+- Output a recommendation to buy or sell.
 
 ## File Overview
 
-- `main.py`: Main script for fetching, processing, and visualizing stock data.
+- `main.py`: Main script for fetching data, training the model, making predictions, and visualizing the results.
 
-## Example Output
-
-After running the script, a plot will display the stock's closing prices and its 30-day and 100-day moving averages. The title of the chart will include the company's name and ticker symbol.
-
-![Screenshot 2025-01-13 141444](https://github.com/user-attachments/assets/8b0f60d6-f3f7-4af7-ad1d-4270ad64ad35)
+## License
 
 This project is licensed under the [MIT License](LICENSE).
