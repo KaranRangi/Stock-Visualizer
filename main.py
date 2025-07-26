@@ -1,58 +1,79 @@
 import yfinance as yf
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 
-#Get stock data
-def getStockData(ticker, sDate, eDate):
+def getStockData(ticker):
     try:
-        data = yf.download(ticker, start=sDate, end=eDate)
-
+        data = yf.download(ticker, period="5y")
         if data.empty:
-            print("Count not find any data for the ticker or date range")
+            print("Could not find any data for this ticker.")
             return None
-        
         return data
-    
     except Exception as e:
         print(f"Error: {e}")
         return None
 
-# Step 2: Calculate moving averages
-def calculateMovingAverages(data, short_window=30, long_window=100):
-    if data is None or data.empty: 
-        print("Data is empty. Exiting.")
-        return None
+def prepareData(data):
+    # Reset index to get date as a column
+    data = data.reset_index()
 
-    data['Short_MA'] = data['Close'].rolling(window=short_window).mean()
-    data['Long_MA'] = data['Close'].rolling(window=long_window).mean()
-    return data
+    # Convert date to ordinal for regression (numerical representation)
+    data['Date'] = pd.to_datetime(data['Date'])
+    data['DateOrdinal'] = data['Date'].map(pd.Timestamp.toordinal)
 
-# Step 3: Plot the stock prices and moving averages
-def plotStockData(data, ticker):
+    # Features and targets
+    X = data[['DateOrdinal']]
+    y = data[['Close']]
 
-    stockInfo = yf.Ticker(ticker).info
-    companyName = stockInfo.get("longName")
+    return X, y, data
 
-    plt.figure(figsize=(12,6))
-    plt.plot(data['Close'], label=f'{ticker} Close Price')
-    plt.plot(data['Short_MA'], label='Short MA (30 days)')
-    plt.plot(data['Long_MA'], label='Long MA (100 days)')
-    plt.title(f'{companyName} ({ticker}) Stock Prices with Moving Averages')
+def trainAndPredict(X, y, futureDays=365):
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+
+    # Train model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    # Predict future dates
+    last_date = X['DateOrdinal'].max()
+    futureDates = np.array([last_date + i for i in range(1, futureDays + 1)]).reshape(-1, 1)
+    predictions = model.predict(futureDates)
+
+    return model, futureDates, predictions
+
+def plotPredictions(data, X, y, futureDates, predictions, ticker):
+    plt.figure(figsize=(14, 6))
+    plt.plot(data['Date'], y, label='Historical Price')
+    plt.plot([pd.Timestamp.fromordinal(int(d[0])) for d in futureDates], predictions, label='Predicted Price', linestyle='--')
     plt.xlabel('Date')
-    plt.ylabel('Price')
+    plt.ylabel('Stock Price')
+    plt.title(f'{ticker.upper()} Stock Price Prediction for Next Year')
     plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
     plt.show()
 
-# Main function
+def buyOrSellDecision(predictions):
+    if predictions[-1] > predictions[0]:
+        return "Prediction: Price expected to rise — You may consider BUYING."
+    else:
+        return "Prediction: Price expected to fall — You may consider SELLING."
+
 if __name__ == "__main__":
-    ticker = input("Enter stocks Ticker symbol: ")
-    startDate = input("Enter start date (Year-MM-DD): ")
-    endDate = input("Enter end date (Year-MM-DD): ")
-    
-    # Fetch the stock data
-    stockData = getStockData(ticker, startDate, endDate)
-    
-    # Calculate the moving averages
-    stockData = calculateMovingAverages(stockData)
-    
-    # Plot the data
-    plotStockData(stockData, ticker)
+    ticker = input("Enter stock ticker symbol: ").upper()
+    data = getStockData(ticker)
+
+    if data is not None:
+        X, y, full_data = prepareData(data)
+        model, futureDates, predictions = trainAndPredict(X, y)
+
+        # Decision logic
+        decision = buyOrSellDecision(predictions)
+        print(decision)
+
+        plotPredictions(full_data, X, y, futureDates, predictions, ticker)
+
